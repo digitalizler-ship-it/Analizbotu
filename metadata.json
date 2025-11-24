@@ -1,0 +1,5 @@
+{
+  "name": "Website SEO and Marketing Analyzer",
+  "description": "Analyzes a website's SEO, advertising, and competitors, then generates a customized digital marketing service proposal using the Gemini API.",
+  "requestFramePermissions": []
+}
