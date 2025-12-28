@@ -33,6 +33,21 @@
     animation: shake 0.5s ease-in-out infinite;
     animation-iteration-count: 2;
   }
+  body {
+    background-color: #0f172a; /* bg-slate-900 equivalent */
+    margin: 0;
+    color: white;
+  }
+  #root:empty::before {
+    content: 'Sistem Yükleniyor...';
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: sans-serif;
+    font-weight: bold;
+    color: #94a3b8;
+  }
 </style>
 </head>
   <body>
