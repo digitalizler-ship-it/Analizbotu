@@ -12,14 +12,8 @@ export const generateProposal = async (
   businessModel: BusinessModel
 ): Promise<AnalysisResult> => {
     
-    // Vercel ve farklı build tool'lar için esnek API KEY erişimi
-    const apiKey = process.env.API_KEY || (import.meta as any).env?.VITE_API_KEY;
-    
-    if (!apiKey) {
-      throw new Error("Sistem yapılandırma hatası: API anahtarı bulunamadı. Lütfen Vercel panelinden API_KEY değişkenini tanımlayın.");
-    }
-
-    const ai = new GoogleGenAI({ apiKey });
+    // SDK kurallarına göre doğrudan enjekte edilen anahtarı kullanıyoruz
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const systemInstruction = `
 Sen "Ertunç Koruç" kimliğinde, "Dijital İzler" ajansının kurucusu ve senior bir büyüme danışmanısın.
@@ -30,7 +24,8 @@ TON: Sert, doğrudan, ticari odaklı. Vakit kaybetme, gerçeği söyle.
 
 GÖREV:
 Verilen URL'in dijital varlığını; SEO görünürlüğü, Meta (FB/IG) ve Google reklam stratejileri açısından analiz et.
-JSON yanıtı dışında hiçbir şey yazma.
+Google Search aracını kullanarak güncel verileri kontrol et.
+Yanıtını MUTLAK SURETLE sadece JSON formatında ver.
     `;
 
     const prompt = `
@@ -88,7 +83,7 @@ Aşağıdaki JSON formatında teşhis koy:
 
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: "gemini-3-pro-preview",
             contents: prompt,
             config: {
                 systemInstruction: systemInstruction,
@@ -98,17 +93,12 @@ Aşağıdaki JSON formatında teşhis koy:
         });
 
         if (!response.text) {
-            throw new Error("Modelden geçerli bir yanıt alınamadı.");
+            throw new Error("Analiz motorundan yanıt alınamadı.");
         }
 
         return JSON.parse(response.text);
     } catch (error: any) {
         console.error("Diagnosis Engine Error:", error);
-        
-        if (error.message?.includes("API Key") || error.message?.includes("key")) {
-            throw new Error("Sistem yapılandırma hatası: API anahtarı geçersiz veya eksik.");
-        }
-
-        throw new Error(error.message || "Analiz motoru şu an yanıt veremiyor.");
+        throw new Error(error.message || "Analiz sırasında bir hata oluştu. Lütfen tekrar deneyin.");
     }
 };

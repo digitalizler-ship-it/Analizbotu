@@ -53,12 +53,12 @@ const App: React.FC = () => {
 
   const handleAnalysis = useCallback(async () => {
     if (usageCount >= DAILY_LIMIT) {
-      setError(`Günlük ücretsiz analiz limitine (${DAILY_LIMIT}) ulaştınız. Yarın tekrar bekleriz!`);
+      setError(`Günlük analiz limitinize ulaştınız.`);
       return;
     }
 
     if (!url || !sectorKeywords || !businessModel) {
-      setError('Lütfen zorunlu alanları (URL, Sektör, İş Modeli) doldurun.');
+      setError('Lütfen tüm zorunlu alanları doldurun.');
       return;
     }
 
@@ -75,7 +75,7 @@ const App: React.FC = () => {
       localStorage.setItem('diagnosis_usage', JSON.stringify({ count: newCount, date: new Date().toDateString() }));
       
     } catch (e: any) {
-      setError(e.message || 'Analiz sırasında teknik bir sorun oluştu.');
+      setError(e.message || 'Analiz motoru şu an meşgul. Lütfen tekrar deneyin.');
     } finally {
       setIsLoading(false);
     }
@@ -92,7 +92,7 @@ const App: React.FC = () => {
           </div>
           <div className="flex items-center gap-3">
              <div className="px-3 py-1 bg-slate-800/50 rounded-full border border-slate-700 text-[10px] font-bold text-slate-400">
-                GÜNLÜK KALAN HAK: {DAILY_LIMIT - usageCount}
+                GÜNLÜK KALAN: {DAILY_LIMIT - usageCount}
              </div>
           </div>
         </div>
@@ -100,13 +100,12 @@ const App: React.FC = () => {
 
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto space-y-12">
-          
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase leading-none">
-              SİTENİZ NEDEN <span className="text-sky-500">PARA KAZANDIRMIYOR?</span>
+              SİTENİZ NEDEN <span className="text-sky-500">BÜYÜMÜYOR?</span>
             </h2>
             <p className="text-slate-400 text-lg max-w-2xl mx-auto font-medium">
-              SEO, reklam ve dönüşüm tıkanıklıklarını saniyeler içinde tespit eden otomatik teşhis motoru.
+              SEO, reklam ve dönüşüm tıkanıklıklarını saniyeler içinde tespit eden yapay zeka motoru.
             </p>
           </div>
 
