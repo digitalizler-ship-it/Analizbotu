@@ -12,11 +12,11 @@ export const generateProposal = async (
   businessModel: BusinessModel
 ): Promise<AnalysisResult> => {
     
-    const apiKey = process.env.API_KEY;
+    // Vercel ve farklı build tool'lar için esnek API KEY erişimi
+    const apiKey = process.env.API_KEY || (import.meta as any).env?.VITE_API_KEY;
     
-    // API anahtarı yoksa SDK'nın çirkin hatası yerine temiz bir uyarı dönelim
     if (!apiKey) {
-      throw new Error("Sistem yapılandırması henüz tamamlanmadı. Lütfen API anahtarının ortam değişkenlerinde (Environment Variables) tanımlı olduğundan emin olun.");
+      throw new Error("Sistem yapılandırma hatası: API anahtarı bulunamadı. Lütfen Vercel panelinden API_KEY değişkenini tanımlayın.");
     }
 
     const ai = new GoogleGenAI({ apiKey });
@@ -105,9 +105,8 @@ Aşağıdaki JSON formatında teşhis koy:
     } catch (error: any) {
         console.error("Diagnosis Engine Error:", error);
         
-        // SDK'nın tarayıcı hatasını daha okunabilir hale getirelim
-        if (error.message?.includes("API Key") || error.message?.includes("browser")) {
-            throw new Error("Sistem yapılandırma hatası: API anahtarı sisteme enjekte edilemedi.");
+        if (error.message?.includes("API Key") || error.message?.includes("key")) {
+            throw new Error("Sistem yapılandırma hatası: API anahtarı geçersiz veya eksik.");
         }
 
         throw new Error(error.message || "Analiz motoru şu an yanıt veremiyor.");
