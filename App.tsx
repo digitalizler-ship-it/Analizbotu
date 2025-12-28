@@ -53,12 +53,12 @@ const App: React.FC = () => {
 
   const handleAnalysis = useCallback(async () => {
     if (usageCount >= DAILY_LIMIT) {
-      setError(`Günlük analiz limitinize ulaştınız.`);
+      setError(`Günlük ücretsiz analiz limitinize ulaştınız. Yarın tekrar bekleriz!`);
       return;
     }
 
     if (!url || !sectorKeywords || !businessModel) {
-      setError('Lütfen tüm zorunlu alanları doldurun.');
+      setError('Lütfen zorunlu alanları (URL, Sektör, İş Modeli) doldurun.');
       return;
     }
 
@@ -75,7 +75,8 @@ const App: React.FC = () => {
       localStorage.setItem('diagnosis_usage', JSON.stringify({ count: newCount, date: new Date().toDateString() }));
       
     } catch (e: any) {
-      setError(e.message || 'Analiz motoru şu an meşgul. Lütfen tekrar deneyin.');
+      // Teknik hataları gizle, kullanıcıya anlamlı bir mesaj ver
+      setError(e.message || 'Analiz motoruna şu an ulaşılamıyor. Lütfen kısa süre sonra tekrar deneyin.');
     } finally {
       setIsLoading(false);
     }
@@ -91,8 +92,8 @@ const App: React.FC = () => {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-             <div className="px-3 py-1 bg-slate-800/50 rounded-full border border-slate-700 text-[10px] font-bold text-slate-400">
-                GÜNLÜK KALAN: {DAILY_LIMIT - usageCount}
+             <div className="px-3 py-1 bg-slate-800/50 rounded-full border border-slate-700 text-[10px] font-bold text-slate-400 uppercase">
+                GÜNLÜK KALAN HAK: {DAILY_LIMIT - usageCount}
              </div>
           </div>
         </div>
@@ -100,6 +101,7 @@ const App: React.FC = () => {
 
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto space-y-12">
+          
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase leading-none">
               SİTENİZ NEDEN <span className="text-sky-500">BÜYÜMÜYOR?</span>
@@ -123,7 +125,7 @@ const App: React.FC = () => {
 
           {error && (
             <div className="bg-red-950/30 border-2 border-red-500/20 p-6 rounded-3xl text-red-400 text-sm font-bold flex flex-col items-center gap-4 animate-shake shadow-2xl">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 text-center">
                 <span className="text-2xl">🚨</span>
                 <span className="leading-relaxed">{error}</span>
               </div>
