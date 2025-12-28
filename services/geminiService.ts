@@ -2,11 +2,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { AnalysisResult, AdInputs, TrackingInputs, BusinessModel } from '../types';
 
-/**
- * STRATEJİK NOT: 
- * API anahtarı hiçbir zaman buraya yazılmaz. 
- * Vercel'deki Environment Variables kısmında ismi 'API_KEY' olmalıdır.
- */
 export const generateProposal = async (
   url: string, 
   sectorKeywords: string, 
@@ -17,31 +12,75 @@ export const generateProposal = async (
   businessModel: BusinessModel
 ): Promise<AnalysisResult> => {
     
-    // Güvenlik ve güncellik için instance her çağrıda oluşturulur
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const systemInstruction = `
-Sen senior dijital büyüme danışmanı ve dönüşüm stratejistisin. 
-DİL: Sadece Türkçe.
-TON: Profesyonel, doğrudan ve sert.
-GÖREV: Web sitesi verilerini analiz edip ticari bir teşhis koymak.
+Sen "Ertunç Koruç" kimliğinde, "Dijital İzler" ajansının kurucusu ve senior bir büyüme danışmanısın.
+Dönüşüm (CRO), SEO ve Ücretli Reklam (Ads) konularında en sert ve en dürüst teşhisleri koyarsın.
+
+DİL: Türkçe.
+TON: Sert, doğrudan, ticari odaklı. Vakit kaybetme, gerçeği söyle.
+
+GÖREV:
+Verilen URL'in dijital varlığını; SEO görünürlüğü, Meta (FB/IG) ve Google reklam stratejileri açısından analiz et.
 JSON yanıtı dışında hiçbir şey yazma.
     `;
 
     const prompt = `
-Aşağıdaki verilere göre 11 maddelik profesyonel teşhisini yap:
-URL: ${url}
-Sektör: ${sectorKeywords}
+Web Sitesi: ${url}
+Sektör/Odak: ${sectorKeywords}
 İş Modeli: ${businessModel}
-Reklamlar: ${JSON.stringify(adInputs)}
-Takip: ${JSON.stringify(trackingInputs)}
+E-ticaret: ${isEcommerce ? 'Evet' : 'Hayır'}
+Reklam Kanalları: ${JSON.stringify(adInputs)}
+Altyapı: ${JSON.stringify(trackingInputs)}
 
-JSON formatında şu alanları doldur: executiveRealitySummary, scoreMeaning, technicallyRightCommerciallyWrong, seoReality, adsReality, uxFriction, coreProblem, failureRisk, actionFramework, expertJudgment, nextStep, emailDraft.
+Aşağıdaki JSON formatında teşhis koy:
+{
+  "executiveRealitySummary": "Cümlelik sert özet",
+  "scoreMeaning": {
+    "overallScore": 0,
+    "detailedScores": {"seo": 0, "ads": 0, "ux": 0, "brand": 0, "growth": 0},
+    "classification": "0-40|41-70|71-85|86-100",
+    "consequences": "...",
+    "notPossible": "...",
+    "commonError": "..."
+  },
+  "technicallyRightCommerciallyWrong": ["liste"],
+  "seoReality": {
+    "trafficPotential": "...",
+    "salesPotential": "...",
+    "competitorGap": "...",
+    "marketReality": "...",
+    "quickWins": ["liste"]
+  },
+  "adsReality": {
+    "targetingVsPersuasion": "...",
+    "messagingScore": 0,
+    "valuePriceBalance": "...",
+    "clickReason": "..."
+  },
+  "uxFriction": {
+    "hesitationPoint": "...",
+    "trustLossPoint": "...",
+    "exitPoint": "...",
+    "expertVerdict": "..."
+  },
+  "coreProblem": {"type": "Trafik|Güven|Konumlandırma|Mesaj", "reason": "..."},
+  "failureRisk": {"wastedInvestment": "...", "burningChannel": "..."},
+  "actionFramework": {
+    "day0_30": [{"task": "", "impact": ""}],
+    "day30_60": [{"task": "", "impact": ""}],
+    "day60_90": [{"task": "", "impact": ""}]
+  },
+  "expertJudgment": "...",
+  "nextStep": "...",
+  "emailDraft": "..."
+}
     `;
 
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-3-pro-preview",
+            model: "gemini-3-flash-preview",
             contents: prompt,
             config: {
                 systemInstruction: systemInstruction,
@@ -51,17 +90,12 @@ JSON formatında şu alanları doldur: executiveRealitySummary, scoreMeaning, te
         });
 
         if (!response.text) {
-            throw new Error("Modelden boş yanıt döndü.");
+            throw new Error("Modelden yanıt alınamadı.");
         }
 
         return JSON.parse(response.text);
     } catch (error: any) {
-        console.error("Analysis Engine Failure:", error);
-        
-        if (error.message?.includes("403")) {
-          throw new Error("API Anahtarı Hatası: Vercel panelinde 'API_KEY' isminde bir değişken olduğundan ve anahtarın doğruluğundan emin olun.");
-        }
-        
-        throw new Error("Analiz motoru şu an yanıt veremiyor. Lütfen biraz sonra tekrar deneyin.");
+        console.error("Diagnosis Engine Error:", error);
+        throw new Error("Analiz motoru şu an meşgul veya geçersiz bir yanıt döndü. Lütfen tekrar deneyin.");
     }
 };

@@ -34,7 +34,6 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [sectorKeywords, setSectorKeywords] = useState('');
   const [usageCount, setUsageCount] = useState(0);
-  const [needsNewKey, setNeedsNewKey] = useState(false);
 
   useEffect(() => {
     emailjs.init('RLLdwGUH72IV4l-Nj');
@@ -51,21 +50,6 @@ const App: React.FC = () => {
       }
     }
   }, []);
-
-  const handleSelectKey = async () => {
-    try {
-      // @ts-ignore
-      if (window.aistudio && window.aistudio.openSelectKey) {
-        await window.aistudio.openSelectKey();
-        setNeedsNewKey(false);
-        setError(null);
-      } else {
-        setError("API anahtarı seçim diyaloğu açılamadı.");
-      }
-    } catch (err) {
-      console.error("Key selection failed", err);
-    }
-  };
 
   const handleAnalysis = useCallback(async () => {
     if (usageCount >= DAILY_LIMIT) {
@@ -93,9 +77,6 @@ const App: React.FC = () => {
     } catch (e: any) {
       const msg = e.message || 'Beklenmedik bir hata oluştu.';
       setError(msg);
-      if (msg.includes("403") || msg.includes("leaked") || msg.includes("API key")) {
-        setNeedsNewKey(true);
-      }
     } finally {
       setIsLoading(false);
     }
@@ -109,20 +90,12 @@ const App: React.FC = () => {
             <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">
               DİJİTAL TEŞHİS MOTORU
             </h1>
-            <p className="text-slate-500 text-[10px] uppercase tracking-[0.3em] font-mono">STratejik büyüme protokolü</p>
+            <p className="text-slate-500 text-[10px] uppercase tracking-[0.3em] font-mono">Stratejik büyüme protokolü</p>
           </div>
           <div className="flex items-center gap-3">
              <div className="px-3 py-1 bg-slate-800 rounded-full border border-slate-700 text-[10px] font-bold text-slate-400">
                 GÜNLÜK HAK: {DAILY_LIMIT - usageCount} / {DAILY_LIMIT}
              </div>
-             {needsNewKey && (
-               <button 
-                onClick={handleSelectKey}
-                className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white rounded-full text-[10px] font-black uppercase transition-colors shadow-lg shadow-red-600/20"
-               >
-                 API ANAHTARINI GÜNCELLE
-               </button>
-             )}
           </div>
         </div>
       </header>
@@ -157,17 +130,6 @@ const App: React.FC = () => {
                 <span className="text-2xl">⚠️</span>
                 <span>{error}</span>
               </div>
-              {needsNewKey && (
-                <div className="mt-4 p-4 bg-red-950/40 rounded-xl border border-red-800/50 text-center">
-                  <p className="mb-4 text-xs">Mevcut API anahtarınız devre dışı kalmış. Kendi API anahtarınızı seçerek devam edebilirsiniz.</p>
-                  <button 
-                    onClick={handleSelectKey}
-                    className="bg-white text-red-600 px-6 py-2 rounded-lg font-black uppercase tracking-widest text-xs hover:bg-slate-100 transition-colors"
-                  >
-                    Yeni Anahtar Seç
-                  </button>
-                </div>
-              )}
             </div>
           )}
 
