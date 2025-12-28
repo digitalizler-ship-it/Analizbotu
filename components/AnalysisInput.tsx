@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AdInputs, AdPlatformInput, AdStatus, AdQuality } from '../types';
+import { AdInputs, AdPlatformInput, AdStatus, AdQuality, TrackingInputs, BusinessModel } from '../types';
 import { WhatsappIcon, LinkedInIcon, InstagramIcon } from './icons';
 
 interface AnalysisInputProps {
@@ -8,12 +8,16 @@ interface AnalysisInputProps {
   setUrl: (url: string) => void;
   sectorKeywords: string;
   setSectorKeywords: (keywords: string) => void;
+  businessModel: BusinessModel;
+  setBusinessModel: (model: BusinessModel) => void;
   isEcommerce: boolean;
   setIsEcommerce: (isEcommerce: boolean) => void;
   competitorUrls: string[];
   setCompetitorUrls: (urls: string[]) => void;
   adInputs: AdInputs;
   setAdInputs: (adInputs: AdInputs) => void;
+  trackingInputs: TrackingInputs;
+  setTrackingInputs: (inputs: TrackingInputs) => void;
   onAnalyze: () => void;
   isLoading: boolean;
 }
@@ -25,9 +29,19 @@ const platforms: { key: keyof AdInputs; name: string }[] = [
     { key: 'tiktok', name: 'TikTok' },
 ];
 
-export const AnalysisInput: React.FC<AnalysisInputProps> = ({ url, setUrl, sectorKeywords, setSectorKeywords, isEcommerce, setIsEcommerce, competitorUrls, setCompetitorUrls, adInputs, setAdInputs, onAnalyze, isLoading }) => {
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter' && url) {
+// Fix: Destructured missing props businessModel, setBusinessModel, trackingInputs, and setTrackingInputs to resolve TS error in App.tsx
+export const AnalysisInput: React.FC<AnalysisInputProps> = ({ 
+    url, setUrl, 
+    sectorKeywords, setSectorKeywords, 
+    businessModel, setBusinessModel,
+    isEcommerce, setIsEcommerce, 
+    competitorUrls, setCompetitorUrls, 
+    adInputs, setAdInputs, 
+    trackingInputs, setTrackingInputs,
+    onAnalyze, isLoading 
+}) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (event.key === 'Enter' && url && sectorKeywords && businessModel) {
       onAnalyze();
     }
   };
@@ -55,6 +69,14 @@ export const AnalysisInput: React.FC<AnalysisInputProps> = ({ url, setUrl, secto
     setAdInputs(newAdInputs);
   };
 
+  // Fix: Added tracking change handler
+  const handleTrackingChange = (field: keyof TrackingInputs) => {
+      setTrackingInputs({
+          ...trackingInputs,
+          [field]: !trackingInputs[field]
+      });
+  };
+
 
   return (
     <div className="bg-slate-800/50 p-6 rounded-xl border border-slate-700 shadow-lg space-y-6">
@@ -70,15 +92,32 @@ export const AnalysisInput: React.FC<AnalysisInputProps> = ({ url, setUrl, secto
               className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition duration-200 text-slate-200 placeholder-slate-500"
               disabled={isLoading}
             />
-            <input
-              type="text"
-              value={sectorKeywords}
-              onChange={(e) => setSectorKeywords(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Sektör veya Anahtar Kelime (Örn: Lüks saat satışı, avukatlık bürosu)"
-              className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition duration-200 text-slate-200 placeholder-slate-500"
-              disabled={isLoading}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  value={sectorKeywords}
+                  onChange={(e) => setSectorKeywords(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Sektör (Örn: Lüks saat satışı)"
+                  className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition duration-200 text-slate-200 placeholder-slate-500"
+                  disabled={isLoading}
+                />
+                {/* Fix: Added Business Model select input */}
+                <select
+                    value={businessModel}
+                    onChange={(e) => setBusinessModel(e.target.value as BusinessModel)}
+                    onKeyDown={handleKeyDown}
+                    className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition duration-200 text-slate-200"
+                    disabled={isLoading}
+                >
+                    <option value="">İş Modeli Seçin...</option>
+                    <option value="B2B">B2B (Kurumsal)</option>
+                    <option value="B2C">B2C (Bireysel)</option>
+                    <option value="SaaS">SaaS (Yazılım)</option>
+                    <option value="Lead Gen">Lead Gen (Form)</option>
+                    <option value="E-commerce">E-Ticaret</option>
+                </select>
+            </div>
              <div className="flex items-center">
               <input
                 id="is-ecommerce"
@@ -94,6 +133,29 @@ export const AnalysisInput: React.FC<AnalysisInputProps> = ({ url, setUrl, secto
             </div>
         </div>
       </div>
+
+       {/* Fix: Added Tracking Inputs UI section */}
+       <div>
+        <h3 className="text-lg font-semibold text-slate-300 mb-3">Altyapı & Takip</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+                { id: 'hasPixel', label: 'Meta Pixel' },
+                { id: 'hasAnalytics', label: 'Google Analytics 4' },
+                { id: 'hasGTM', label: 'Google Tag Manager' }
+            ].map((track) => (
+                <label key={track.id} className="flex items-center p-3 bg-slate-800 border border-slate-600 rounded-lg cursor-pointer hover:border-sky-500/50 transition-all">
+                    <input
+                        type="checkbox"
+                        checked={trackingInputs[track.id as keyof TrackingInputs]}
+                        onChange={() => handleTrackingChange(track.id as keyof TrackingInputs)}
+                        className="h-4 w-4 rounded border-slate-500 bg-slate-700 text-sky-600 focus:ring-sky-500"
+                    />
+                    <span className="ml-3 text-sm font-medium text-slate-300">{track.label}</span>
+                </label>
+            ))}
+        </div>
+      </div>
+
        <div>
         <h3 className="text-lg font-semibold text-slate-300 mb-3">Rakip Analizi (Opsiyonel)</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -157,7 +219,7 @@ export const AnalysisInput: React.FC<AnalysisInputProps> = ({ url, setUrl, secto
       <div className="space-y-4">
         <button
           onClick={onAnalyze}
-          disabled={isLoading || !url}
+          disabled={isLoading || !url || !sectorKeywords || !businessModel}
           className="w-full px-8 py-3 bg-sky-600 text-white font-bold rounded-lg hover:bg-sky-500 disabled:bg-slate-600 disabled:cursor-not-allowed transition duration-200 flex items-center justify-center gap-2 flex-shrink-0 text-lg"
         >
           {isLoading ? (

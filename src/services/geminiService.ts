@@ -2,9 +2,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { AnalysisResult, AdInputs, TrackingInputs, BusinessModel } from '../types';
 
-// API Key is handled by process.env.API_KEY
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export const generateProposal = async (
   url: string, 
   sectorKeywords: string, 
@@ -15,94 +12,76 @@ export const generateProposal = async (
   businessModel: BusinessModel
 ): Promise<AnalysisResult> => {
     
+    // Her çağrıda yeni instance oluşturarak process.env.API_KEY'in en güncel halini alıyoruz
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
     const systemInstruction = `
-Sen sıradan bir SEO veya analiz aracı değilsin. Sen, senior dijital büyüme danışmanı ve dönüşüm stratejistisin. Karar vermezsin, tespit edersin. Bilirkişisin.
-Referans düşüncen: “Teknik olarak doğru olan ama dönüşmeyen veya ölçeklenemeyen bir kurgu başarısızlıktır.”
+Sen "Ertunç Koruç" kimliğinde, "Dijital İzler" ajansının kurucusu ve senior bir büyüme danışmanısın.
+Dönüşüm (CRO), SEO ve Ücretli Reklam (Ads) konularında en sert ve en dürüst teşhisleri koyarsın.
 
-DİL VE ÜSLUP KURALLARI:
-- ÇIKTI DİLİ SADECE TÜRKÇE.
-- Ton: Danışman seviyesinde, doğrudan, bazen rahatsız edici derecede dürüst.
-- EMOJİ KESİNLİKLE YASAK.
-- Pazarlama süslemesi (marketing fluff) yapma. Net, kendinden emin ve açıklayıcı ol.
-- Nazik olma zorunluluğun yok, sadece saygılı ol. Belirsiz ifadeler kullanma.
+DİL: Türkçe.
+TON: Sert, doğrudan, ticari odaklı. Vakit kaybetme, gerçeği söyle.
 
-VERİ HİYERARŞİSİ:
-- Level 0 (Mutlak Otorite): Kullanıcının girdiği "${sectorKeywords}" ve "${businessModel}" bilgisi mutlaktır. URL tahminleri bunu değiştiremez.
-- Level 1 (Teknik): Reklam durumu (${JSON.stringify(adInputs)}) ve Takip altyapısı (${JSON.stringify(trackingInputs)}).
+GÖREV:
+Verilen URL'in dijital varlığını; SEO görünürlüğü, Meta (FB/IG) ve Google reklam stratejileri açısından analiz et.
+Eğer reklam verisi kullanıcının girdisinde "yes" ise, o kanaldaki potansiyel hataları tahmin et. "no" ise, o kanalı kullanmamanın maliyetini vurgula.
 
-ÇIKTI YAPISI (BU SIRAYI TAKİP ET):
-1. EXECUTIVE GERÇEKLİK ÖZETİ
-2. SKORUN GERÇEK ANLAMI (Skor sınıflarına göre yorumla)
-3. TEKNİK DOĞRU, TİCARİ YANLIŞ OLAN ALANLAR (En az 3 örnek)
-4. SEO GERÇEĞİ (Trafik vs Satış dengesi)
-5. REKLAM & MESAJ GERÇEKLİĞİ (Mesaj netliği ve ikna gücü)
-6. UX & DÖNÜŞÜM TIKANIKLIĞI (Kararsızlık ve risk noktaları)
-7. ASIL SORUN NEDİR? (Trafik mi, Güven mi, Konumlandırma mı, Mesaj mı?)
-8. NE YAPILMAZSA BATIRIR? (Boşa gidecek yatırım ve para yakacak kanallar)
-9. NET AKSİYON ÇERÇEVESİ (0-30, 30-60, 60-90 gün)
-10. DANIŞMAN YARGISI (Zorunlu ve sert bölüm)
-11. SONRAKİ MANTIKLI ADIM (Yönlendirici ama satış yapmayan CTA)
+SEO ANALİZİ: Teknik skordan ziyade "bu site bu içerikle bu rakiplerin arasından sıyrılıp para kazandırır mı?" sorusuna yanıt ver.
+REKLAM ANALİZİ: Kullanıcının verdiği kalite girdisini (zayıf/orta/yüksek) baz alarak, mesajın neden dönüşmediğini veya neden daha iyi olabileceğini açıkla.
 
-ZORUNLU FORMAT: JSON. Analiz karar aldırmıyorsa başarısızdır.
+JSON yanıtı dışında hiçbir şey yazma.
     `;
 
     const prompt = `
-Aşağıdaki verileri kullanarak profesyonel teşhisini yap:
-Site URL: ${url}
-Sektör/Uzmanlık: ${sectorKeywords}
+STRATEJİK VERİLER:
+Web Sitesi: ${url}
+Sektör/Odak: ${sectorKeywords}
 İş Modeli: ${businessModel}
-E-ticaret: ${isEcommerce}
-Mevcut Reklamlar: ${JSON.stringify(adInputs)}
-Takip Sistemleri: ${JSON.stringify(trackingInputs)}
-Rakipler: ${competitorUrls.filter(u => u).join(', ')}
+E-ticaret: ${isEcommerce ? 'Evet' : 'Hayır'}
+Reklam Kanalları Girdisi: ${JSON.stringify(adInputs)}
+Teknik Takip Altyapısı: ${JSON.stringify(trackingInputs)}
 
-Yanıtı bu JSON yapısında ver:
+Lütfen bu siteyi Google Search üzerinden de araştırarak (varsa mevcut meta tagleri, indexlenmiş sayfaları, reklam kütüphanesi bilgilerini kontrol etmeye çalış) şu JSON formatında teşhis koy:
 {
-  "executiveRealitySummary": "Bu site neden şu an büyüyemez sorusuna net cevap içeren 3-5 cümle.",
+  "executiveRealitySummary": "Cümlelik sert özet",
   "scoreMeaning": {
-    "overallScore": 0,
+    "overallScore": 0-100 arası puan,
     "detailedScores": {"seo": 0, "ads": 0, "ux": 0, "brand": 0, "growth": 0},
-    "classification": "0–40|41–70|71–85|86–100",
-    "consequences": "Devam edilirse ne olur?",
-    "notPossible": "Ne mümkün olmaz?",
-    "commonError": "En sık yapılan hata?"
+    "classification": "0-40|41-70|71-85|86-100",
+    "consequences": "Böyle devam ederse ne olur?",
+    "notPossible": "Mevcut yapıyla ne imkansızdır?",
+    "commonError": "Sektördeki en büyük hata"
   },
-  "technicallyRightCommerciallyWrong": ["Örnek 1", "Örnek 2", "Örnek 3"],
+  "technicallyRightCommerciallyWrong": ["liste"],
   "seoReality": {
-    "trafficPotential": "Trafik getirir mi?",
-    "salesPotential": "Satış üretir mi?",
-    "competitorGap": "Neden geride kalır?",
-    "marketReality": "Türkiye pazarı gerçeği",
-    "quickWins": ["Hamle 1", "Hamle 2"]
+    "trafficPotential": "Trafik analizi",
+    "salesPotential": "Satış potansiyeli",
+    "competitorGap": "Rakip farkı",
+    "marketReality": "Pazar gerçeği",
+    "quickWins": ["liste"]
   },
   "adsReality": {
-    "targetingVsPersuasion": "Analiz",
-    "messagingScore": 0,
-    "valuePriceBalance": "Denge analizi",
-    "clickReason": "Neden tıklayayım sorusuna yanıt?"
+    "targetingVsPersuasion": "Hedefleme mi yanlış ikna mı?",
+    "messagingScore": 0-10,
+    "valuePriceBalance": "Değer-fiyat algısı",
+    "clickReason": "Neden tıklasınlar?"
   },
   "uxFriction": {
     "hesitationPoint": "Kararsızlık noktası",
     "trustLossPoint": "Güven kaybı",
-    "exitPoint": "Terk etme noktası",
-    "expertVerdict": "UX yargısı"
+    "exitPoint": "Kaçış noktası",
+    "expertVerdict": "Uzman yargısı"
   },
-  "coreProblem": {
-    "type": "Trafik|Güven|Konumlandırma|Mesaj",
-    "reason": "Gerekçelendirme"
-  },
-  "failureRisk": {
-    "wastedInvestment": "Boşa gidecek yatırım",
-    "burningChannel": "Para yakacak kanal"
-  },
+  "coreProblem": {"type": "Trafik|Güven|Konumlandırma|Mesaj", "reason": "Neden?"},
+  "failureRisk": {"wastedInvestment": "Boşa giden para", "burningChannel": "Para yakan kanal"},
   "actionFramework": {
-    "day0_30": [{"task": "...", "impact": "..."}],
-    "day30_60": [{"task": "...", "impact": "..."}],
-    "day60_90": [{"task": "...", "impact": "..."}]
+    "day0_30": [{"task": "", "impact": ""}],
+    "day30_60": [{"task": "", "impact": ""}],
+    "day60_90": [{"task": "", "impact": ""}]
   },
-  "expertJudgment": "Sert ve net danışman görüşü",
-  "nextStep": "CTA mesajı",
-  "emailDraft": "Satış odaklı soğuk e-posta"
+  "expertJudgment": "Son söz",
+  "nextStep": "CTA",
+  "emailDraft": "Satış odaklı soğuk email taslağı"
 }
     `;
 
@@ -117,9 +96,23 @@ Yanıtı bu JSON yapısında ver:
             },
         });
 
-        return JSON.parse(response.text);
-    } catch (error) {
-        console.error("Diagnosis Engine Failure:", error);
-        throw new Error("Sistem teşhis sırasında bir hata ile karşılaştı. Lütfen girdileri kontrol edin.");
+        const text = response.text;
+        if (!text) {
+            throw new Error("Modelden boş yanıt döndü.");
+        }
+
+        return JSON.parse(text);
+    } catch (error: any) {
+        console.error("Diagnosis Engine Error:", error);
+        
+        if (error.message?.includes("403") || error.message?.includes("leaked") || error.message?.includes("API key")) {
+          throw new Error("Kritik: Mevcut API anahtarı Google tarafından sızıntı (leaked) nedeniyle engellenmiş. Lütfen 'API Anahtarını Güncelle' butonu ile kendi anahtarınızı seçin.");
+        }
+        
+        if (error.message?.includes("429")) {
+          throw new Error("Quota aşıldı. Lütfen 1 dakika bekleyip tekrar deneyin.");
+        }
+
+        throw new Error("Analiz motoru şu an yanıt veremiyor. Teknik bir aksaklık olabilir.");
     }
 };

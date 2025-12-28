@@ -8,7 +8,7 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { HowItWorks } from './components/HowItWorks';
 import emailjs from '@emailjs/browser';
 
-const DAILY_LIMIT = 3;
+const DAILY_LIMIT = 5;
 
 const initialAdInputs: AdInputs = {
   meta: { runsAds: '', quality: '' },
@@ -35,11 +35,11 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [sectorKeywords, setSectorKeywords] = useState('');
   const [usageCount, setUsageCount] = useState(0);
+  const [needsNewKey, setNeedsNewKey] = useState(false);
 
   useEffect(() => {
     emailjs.init('RLLdwGUH72IV4l-Nj');
     
-    // Check daily usage limit
     const today = new Date().toDateString();
     const storedData = localStorage.getItem('diagnosis_usage');
     if (storedData) {
@@ -47,38 +47,26 @@ const App: React.FC = () => {
       if (date === today) {
         setUsageCount(count);
       } else {
+        setUsageCount(0);
         localStorage.setItem('diagnosis_usage', JSON.stringify({ count: 0, date: today }));
       }
-    } else {
-      localStorage.setItem('diagnosis_usage', JSON.stringify({ count: 0, date: today }));
     }
   }, []);
 
-  const updateUsage = () => {
-    const today = new Date().toDateString();
-    const newCount = usageCount + 1;
-    setUsageCount(newCount);
-    localStorage.setItem('diagnosis_usage', JSON.stringify({ count: newCount, date: today }));
+  const handleSelectKey = async () => {
+    try {
+      // @ts-ignore
+      await window.aistudio.openSelectKey();
+      setNeedsNewKey(false);
+      setError(null);
+    } catch (err) {
+      console.error("Key selection failed", err);
+    }
   };
-
-  const sendNotificationEmail = useCallback((result: AnalysisResultType) => {
-    const serviceID = 'service_i28ay7n';
-    const templateID = 'template_tbn9x6n';
-
-    const templateParams = {
-      analyzed_url: url,
-      sector_keywords: sectorKeywords || 'Girilmedi',
-      business_model: businessModel,
-      is_ecommerce: isEcommerce ? 'Evet' : 'Hayır',
-      analysis_result: JSON.stringify(result, null, 2),
-    };
-
-    emailjs.send(serviceID, templateID, templateParams).catch(console.error);
-  }, [url, sectorKeywords, businessModel, isEcommerce]);
 
   const handleAnalysis = useCallback(async () => {
     if (usageCount >= DAILY_LIMIT) {
-      setError(`Günlük ücretsiz analiz limitine (${DAILY_LIMIT}) ulaştınız. Yarın tekrar deneyebilir veya doğrudan bizimle iletişime geçebilirsiniz.`);
+      setError(`Günlük ücretsiz analiz limitine (${DAILY_LIMIT}) ulaştınız. Yarın tekrar bekleriz!`);
       return;
     }
 
@@ -94,14 +82,21 @@ const App: React.FC = () => {
     try {
       const result = await generateProposal(url, sectorKeywords, competitorUrls, adInputs, trackingInputs, isEcommerce, businessModel);
       setAnalysisResult(result);
-      sendNotificationEmail(result);
-      updateUsage();
-    } catch (e) {
-      setError('Analiz motoru bir sorunla karşılaştı. Lütfen daha sonra tekrar deneyin.');
+      
+      const newCount = usageCount + 1;
+      setUsageCount(newCount);
+      localStorage.setItem('diagnosis_usage', JSON.stringify({ count: newCount, date: new Date().toDateString() }));
+      
+    } catch (e: any) {
+      const msg = e.message || 'Beklenmedik bir hata oluştu.';
+      setError(msg);
+      if (msg.includes("403") || msg.includes("leaked") || msg.includes("API key")) {
+        setNeedsNewKey(true);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [url, sectorKeywords, competitorUrls, adInputs, trackingInputs, isEcommerce, businessModel, usageCount, sendNotificationEmail]);
+  }, [url, sectorKeywords, competitorUrls, adInputs, trackingInputs, isEcommerce, businessModel, usageCount]);
 
   return (
     <div className="bg-slate-900 min-h-screen text-slate-200 font-sans pb-20">
@@ -111,28 +106,26 @@ const App: React.FC = () => {
             <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">
               DİJİTAL TEŞHİS MOTORU
             </h1>
-            <p className="text-slate-500 text-[10px] uppercase tracking-[0.3em] font-mono">Powered by Dijital İzler & Gemini 3 Pro</p>
+            <p className="text-slate-500 text-[10px] uppercase tracking-[0.3em] font-mono">v3.2.0 | RECOVERY PROTOCOL</p>
           </div>
           <div className="flex items-center gap-3">
              <div className="px-3 py-1 bg-slate-800 rounded-full border border-slate-700 text-[10px] font-bold text-slate-400">
                 GÜNLÜK HAK: {DAILY_LIMIT - usageCount} / {DAILY_LIMIT}
              </div>
-             <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-[10px] font-black uppercase tracking-widest">
-                ÜCRETSİZ ERİŞİM
-             </span>
+             {needsNewKey && (
+               <button 
+                onClick={handleSelectKey}
+                className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white rounded-full text-[10px] font-black uppercase transition-colors shadow-lg shadow-red-600/20"
+               >
+                 API ANAHTARINI GÜNCELLE
+               </button>
+             )}
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto space-y-12">
-          <section className="text-center space-y-4">
-            <h2 className="text-4xl md:text-5xl font-black text-white leading-tight">Siteniz Neden <span className="text-sky-500">Satış Yapmıyor?</span></h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-              Teorik raporları unutun. Yapay zeka ve uzman tecrübesiyle sitenizin ticari tıkanıklıklarını saniyeler içinde teşhis edin.
-            </p>
-          </section>
-
           <HowItWorks />
           
           <AnalysisInput
@@ -148,25 +141,30 @@ const App: React.FC = () => {
           />
 
           {error && (
-            <div className="bg-red-900/20 border-2 border-red-900/50 p-6 rounded-2xl text-red-400 text-sm font-bold flex items-center gap-4 animate-shake">
-              <span className="text-2xl">⚠️</span>
-              {error}
+            <div className="bg-red-900/20 border-2 border-red-900/50 p-6 rounded-2xl text-red-400 text-sm font-bold flex flex-col items-center gap-4 animate-shake">
+              <div className="flex items-center gap-4">
+                <span className="text-2xl">⚠️</span>
+                <span>{error}</span>
+              </div>
+              {needsNewKey && (
+                <div className="mt-4 p-4 bg-red-950/40 rounded-xl border border-red-800/50 text-center">
+                  <p className="mb-4 text-xs">Mevcut API anahtarınız devre dışı kalmış. Kendi API anahtarınızı seçerek devam edebilirsiniz.</p>
+                  <button 
+                    onClick={handleSelectKey}
+                    className="bg-white text-red-600 px-6 py-2 rounded-lg font-black uppercase tracking-widest text-xs hover:bg-slate-100 transition-colors"
+                  >
+                    Yeni Anahtar Seç
+                  </button>
+                  <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" className="block mt-2 text-[10px] underline opacity-50">Faturalandırma dökümanı</a>
+                </div>
+              )}
             </div>
           )}
 
           {isLoading && <LoadingSpinner />}
-
-          {analysisResult && !isLoading && (
-            <AnalysisResult result={analysisResult} url={url} />
-          )}
+          {analysisResult && !isLoading && <AnalysisResult result={analysisResult} url={url} />}
         </div>
       </main>
-
-      <footer className="container mx-auto px-4 py-12 border-t border-slate-800 text-center">
-         <p className="text-slate-600 text-xs font-mono">
-           &copy; {new Date().getFullYear()} Dijital İzler - Profesyonel Dijital Teşhis ve Büyüme Protokolü.
-         </p>
-      </footer>
     </div>
   );
 };

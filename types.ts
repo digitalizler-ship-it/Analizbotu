@@ -1,51 +1,63 @@
 
-export interface SeoAuditCategory {
-  category: string;
-  score: number;
-  passedChecks: string[];
-  failedChecks: string[];
+export interface ActionFramework {
+  day0_30: { task: string; impact: string }[];
+  day30_60: { task: string; impact: string }[];
+  day60_90: { task: string; impact: string }[];
 }
 
-export interface SeoAnalysis {
-  overallScore: number;
-  summary: string;
-  audits: SeoAuditCategory[];
-  expertSuggestion: string;
+export interface DetailedScores {
+  seo: number;
+  ads: number;
+  ux: number;
+  brand: number;
+  growth: number;
 }
 
-export interface AdAnalysis {
-  strategicAnalysis: string;
-}
-
-export interface Competitor {
-  name: string;
-  analysis: string;
-}
-
-export interface CompetitorAnalysis {
-  competitors: Competitor[];
-}
-
-export interface ProposedService {
-  serviceName: string;
-  description: string;
-}
-
-export interface ServiceProposal {
-  introduction: string;
-  proposedServices: ProposedService[];
-  conclusion: string;
-}
-
+// Fix: Updated AnalysisResult interface to match the high-fidelity structure returned by Gemini API
 export interface AnalysisResult {
-  siteSummary: string;
-  seoAnalysis: SeoAnalysis;
-  adAnalysis: AdAnalysis;
-  competitorAnalysis: CompetitorAnalysis;
-  serviceProposal: ServiceProposal;
+  executiveRealitySummary: string;
+  scoreMeaning: {
+    overallScore: number;
+    detailedScores: DetailedScores;
+    classification: '0–40' | '41–70' | '71–85' | '86–100';
+    consequences: string;
+    notPossible: string;
+    commonError: string;
+  };
+  technicallyRightCommerciallyWrong: string[];
+  seoReality: {
+    trafficPotential: string;
+    salesPotential: string;
+    competitorGap: string;
+    marketReality: string;
+    quickWins: string[];
+  };
+  adsReality: {
+    targetingVsPersuasion: string;
+    messagingScore: number;
+    valuePriceBalance: string;
+    clickReason: string;
+  };
+  uxFriction: {
+    hesitationPoint: string;
+    trustLossPoint: string;
+    exitPoint: string;
+    expertVerdict: string;
+  };
+  coreProblem: {
+    type: 'Trafik' | 'Güven' | 'Konumlandırma' | 'Mesaj';
+    reason: string;
+  };
+  failureRisk: {
+    wastedInvestment: string;
+    burningChannel: string;
+  };
+  actionFramework: ActionFramework;
+  expertJudgment: string;
+  nextStep: string;
+  emailDraft: string;
 }
 
-// New types for user-provided ad inputs
 export type AdStatus = 'yes' | 'no' | '';
 export type AdQuality = 'zayıf' | 'orta' | 'yüksek' | '';
 
@@ -59,4 +71,12 @@ export interface AdInputs {
   google: AdPlatformInput;
   linkedin: AdPlatformInput;
   tiktok: AdPlatformInput;
+}
+
+export type BusinessModel = 'B2B' | 'B2C' | 'SaaS' | 'Lead Gen' | 'E-commerce' | '';
+
+export interface TrackingInputs {
+    hasPixel: boolean;
+    hasAnalytics: boolean;
+    hasGTM: boolean;
 }
