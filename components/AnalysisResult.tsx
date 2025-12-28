@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AnalysisResult as AnalysisResultType } from '../types';
 import { ResultCard } from './ResultCard';
@@ -45,6 +46,12 @@ const CallToActionSection = () => (
 export const AnalysisResult: React.FC<AnalysisResultProps> = ({ result, url }) => {
   const { siteSummary, seoAnalysis, adAnalysis, competitorAnalysis, serviceProposal } = result;
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const getScoreColor = (score: number) => {
+    if (score >= 90) return 'text-green-400';
+    if (score >= 75) return 'text-yellow-400';
+    return 'text-red-400';
+  };
 
   const handleDownloadHtml = () => {
     const reportElement = document.getElementById('report-content');
@@ -136,25 +143,46 @@ export const AnalysisResult: React.FC<AnalysisResultProps> = ({ result, url }) =
         <p className="text-center text-lg text-slate-300 italic bg-slate-800/50 p-4 rounded-lg border border-slate-700">
           {siteSummary}
         </p>
-        
-        <div className="grid md:grid-cols-2 gap-6">
-          <ResultCard title="SEO Analizi" icon={<LightBulbIcon />}>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-semibold text-green-400 mb-2">Güçlü Yönler</h4>
-                <BulletList items={seoAnalysis.strengths} icon={<CheckCircleIcon className="w-5 h-5 text-green-400" />} />
-              </div>
-              <div>
-                <h4 className="font-semibold text-red-400 mb-2">Zayıf Yönler</h4>
-                <BulletList items={seoAnalysis.weaknesses} icon={<XCircleIcon className="w-5 h-5 text-red-400" />} />
-              </div>
-              <div>
-                <h4 className="font-semibold text-yellow-400 mb-2">İyileştirme Önerileri</h4>
-                <BulletList items={seoAnalysis.suggestions} icon={<SparklesIcon className="w-5 h-5 text-yellow-400" />} />
-              </div>
-            </div>
-          </ResultCard>
 
+        <ResultCard title="SEO Mükemmeliyet Protokolü Denetimi" icon={<LightBulbIcon />}>
+            <div className="text-center mb-6">
+                <p className="text-slate-400 text-lg">Genel Mükemmeliyet Puanı</p>
+                <p className={`text-7xl font-bold ${getScoreColor(seoAnalysis.overallScore)}`}>{seoAnalysis.overallScore}<span className="text-4xl text-slate-500">/100</span></p>
+                <p className="mt-2 text-slate-300">{seoAnalysis.summary}</p>
+            </div>
+
+            <div className="space-y-6">
+                {seoAnalysis.audits.map((audit) => (
+                    <div key={audit.category} className="p-4 bg-slate-800/70 rounded-lg">
+                        <div className="flex justify-between items-center mb-3">
+                            <h4 className="font-bold text-sky-400 text-lg">{audit.category}</h4>
+                            <span className={`font-bold text-xl ${getScoreColor(audit.score * 10)}`}>{audit.score}/10</span>
+                        </div>
+                        {audit.failedChecks.length > 0 && (
+                            <div className="mb-3">
+                                <h5 className="font-semibold text-red-400 mb-2">Başarısız Denetimler</h5>
+                                <BulletList items={audit.failedChecks} icon={<XCircleIcon className="w-5 h-5 text-red-400" />} />
+                            </div>
+                        )}
+                        {audit.passedChecks.length > 0 && (
+                             <div>
+                                <h5 className="font-semibold text-green-400 mb-2">Başarılı Denetimler</h5>
+                                <BulletList items={audit.passedChecks} icon={<CheckCircleIcon className="w-5 h-5 text-green-400" />} />
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+             {seoAnalysis.expertSuggestion && (
+                <div className="mt-6 p-4 bg-yellow-900/30 border border-yellow-700/50 rounded-lg">
+                    <h4 className="font-bold text-yellow-400 text-lg mb-2">Ek Uzman Önerisi</h4>
+                    <p className="text-slate-300">{seoAnalysis.expertSuggestion}</p>
+                </div>
+            )}
+        </ResultCard>
+
+        
+        <div className="grid md:grid-cols-1 gap-6">
           <ResultCard title="Stratejik Reklam Analizi" icon={<SparklesIcon />}>
              <p className="text-slate-300 whitespace-pre-line">{adAnalysis.strategicAnalysis}</p>
           </ResultCard>

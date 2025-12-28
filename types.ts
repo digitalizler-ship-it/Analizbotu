@@ -1,7 +1,16 @@
+
+export interface SeoAuditCategory {
+  category: string;
+  score: number;
+  passedChecks: string[];
+  failedChecks: string[];
+}
+
 export interface SeoAnalysis {
-  strengths: string[];
-  weaknesses: string[];
-  suggestions: string[];
+  overallScore: number;
+  summary: string;
+  audits: SeoAuditCategory[];
+  expertSuggestion: string;
 }
 
 export interface AdAnalysis {

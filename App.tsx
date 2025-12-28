@@ -7,7 +7,7 @@ import { AnalysisInput } from './components/AnalysisInput';
 import { AnalysisResult } from './components/AnalysisResult';
 import { LoadingSpinner } from './components/LoadingSpinner';
 
-// Type assertion for emailjs
+// Type assertion for emailjs, which is loaded globally from index.html
 declare const emailjs: any;
 
 const initialAdInputs: AdInputs = {
@@ -25,27 +25,20 @@ const App: React.FC = () => {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResultType | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [sectorKeywords, setSectorKeywords] = useState('');
 
   useEffect(() => {
-    // EmailJS Public Key'iniz ile başlatılıyor.
-    // DİKKAT: Bu anahtar, EmailJS panelinizdeki "Public Key" olmalıdır.
-    try {
-      console.log("EmailJS starting initialization with Public Key...");
-      emailjs.init('RLLdwGUH72IV4l-Nj'); // <-- HATA DÜZELTİLDİ: Doğru Public Key kullanıldı.
-      console.log("EmailJS initialized successfully.");
-    } catch (e) {
-      console.error("Failed to initialize EmailJS:", e);
-    }
+    // Correctly initialize EmailJS with the PUBLIC Key
+    emailjs.init('RLLdwGUH72IV4l-Nj');
   }, []);
 
   const sendNotificationEmail = useCallback((result: AnalysisResultType) => {
-    console.log("Attempting to send notification email...");
-    // EmailJS Service ID ve Template ID'niz
     const serviceID = 'service_i28ay7n';
     const templateID = 'template_tbn9x6n';
 
     const templateParams = {
       analyzed_url: url,
+      sector_keywords: sectorKeywords || 'Girilmedi',
       is_ecommerce: isEcommerce ? 'Evet' : 'Hayır',
       competitor_1: competitorUrls[0] || 'Girilmedi',
       competitor_2: competitorUrls[1] || 'Girilmedi',
@@ -55,12 +48,12 @@ const App: React.FC = () => {
 
     emailjs.send(serviceID, templateID, templateParams)
       .then((response: any) => {
-        console.log('SUCCESS! Notification email sent.', response.status, response.text);
+        console.log('Notification email sent successfully!', response.status, response.text);
       })
       .catch((err: any) => {
         console.error('FAILED to send notification email. Error:', err);
       });
-  }, [url, isEcommerce, competitorUrls, adInputs]);
+  }, [url, sectorKeywords, isEcommerce, competitorUrls, adInputs]);
 
 
   const handleAnalysis = useCallback(async () => {
@@ -74,10 +67,9 @@ const App: React.FC = () => {
     setAnalysisResult(null);
 
     try {
-      const result = await generateProposal(url, competitorUrls, adInputs, isEcommerce);
+      const result = await generateProposal(url, sectorKeywords, competitorUrls, adInputs, isEcommerce);
       setAnalysisResult(result);
       
-      // Send notification email with the results after successful analysis
       sendNotificationEmail(result);
 
     } catch (e) {
@@ -86,7 +78,7 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [url, competitorUrls, adInputs, isEcommerce, sendNotificationEmail]);
+  }, [url, sectorKeywords, competitorUrls, adInputs, isEcommerce, sendNotificationEmail]);
 
   return (
     <div className="bg-slate-900 min-h-screen text-slate-200 font-sans">
@@ -100,6 +92,8 @@ const App: React.FC = () => {
           <AnalysisInput
             url={url}
             setUrl={setUrl}
+            sectorKeywords={sectorKeywords}
+            setSectorKeywords={setSectorKeywords}
             isEcommerce={isEcommerce}
             setIsEcommerce={setIsEcommerce}
             competitorUrls={competitorUrls}

@@ -1,10 +1,12 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Website SEO and Marketing Analyzer</title>
+    <title>Dijital Teşhis Motoru | Ücretsiz Site & SEO Analizi</title>
+    <meta name="description" content="Siteniz neden büyümüyor? Ücretsiz dijital teşhis motoru ile SEO, reklam ve dönüşüm tıkanıklıklarını saniyeler içinde tespit edin." />
     <script src="https://cdn.tailwindcss.com"></script>
     <script
       type="text/javascript"
@@ -16,10 +18,22 @@
     "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0"
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "@emailjs/browser": "https://aistudiocdn.com/@emailjs/browser@^4.4.1"
   }
 }
 </script>
+<style>
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+  .animate-shake {
+    animation: shake 0.5s ease-in-out infinite;
+    animation-iteration-count: 2;
+  }
+</style>
 </head>
   <body>
     <div id="root"></div>

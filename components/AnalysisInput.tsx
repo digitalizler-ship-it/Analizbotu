@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { AdInputs, AdPlatformInput, AdStatus, AdQuality } from '../types';
 import { WhatsappIcon, LinkedInIcon, InstagramIcon } from './icons';
@@ -5,6 +6,8 @@ import { WhatsappIcon, LinkedInIcon, InstagramIcon } from './icons';
 interface AnalysisInputProps {
   url: string;
   setUrl: (url: string) => void;
+  sectorKeywords: string;
+  setSectorKeywords: (keywords: string) => void;
   isEcommerce: boolean;
   setIsEcommerce: (isEcommerce: boolean) => void;
   competitorUrls: string[];
@@ -22,7 +25,7 @@ const platforms: { key: keyof AdInputs; name: string }[] = [
     { key: 'tiktok', name: 'TikTok' },
 ];
 
-export const AnalysisInput: React.FC<AnalysisInputProps> = ({ url, setUrl, isEcommerce, setIsEcommerce, competitorUrls, setCompetitorUrls, adInputs, setAdInputs, onAnalyze, isLoading }) => {
+export const AnalysisInput: React.FC<AnalysisInputProps> = ({ url, setUrl, sectorKeywords, setSectorKeywords, isEcommerce, setIsEcommerce, competitorUrls, setCompetitorUrls, adInputs, setAdInputs, onAnalyze, isLoading }) => {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && url) {
       onAnalyze();
@@ -41,7 +44,6 @@ export const AnalysisInput: React.FC<AnalysisInputProps> = ({ url, setUrl, isEco
 
     if (field === 'runsAds') {
         platformInput.runsAds = value as AdStatus;
-        // If "No", reset quality
         if (value !== 'yes') {
             platformInput.quality = '';
         }
@@ -65,6 +67,15 @@ export const AnalysisInput: React.FC<AnalysisInputProps> = ({ url, setUrl, isEco
               onChange={(e) => setUrl(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="https://ornekwebsitesi.com"
+              className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition duration-200 text-slate-200 placeholder-slate-500"
+              disabled={isLoading}
+            />
+            <input
+              type="text"
+              value={sectorKeywords}
+              onChange={(e) => setSectorKeywords(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Sektör veya Anahtar Kelime (Örn: Lüks saat satışı, avukatlık bürosu)"
               className="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition duration-200 text-slate-200 placeholder-slate-500"
               disabled={isLoading}
             />
