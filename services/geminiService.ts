@@ -12,7 +12,14 @@ export const generateProposal = async (
   businessModel: BusinessModel
 ): Promise<AnalysisResult> => {
     
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = process.env.API_KEY;
+    
+    // API anahtarı yoksa SDK'nın çirkin hatası yerine temiz bir uyarı dönelim
+    if (!apiKey) {
+      throw new Error("Sistem yapılandırması henüz tamamlanmadı. Lütfen API anahtarının ortam değişkenlerinde (Environment Variables) tanımlı olduğundan emin olun.");
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
 
     const systemInstruction = `
 Sen "Ertunç Koruç" kimliğinde, "Dijital İzler" ajansının kurucusu ve senior bir büyüme danışmanısın.
@@ -27,12 +34,13 @@ JSON yanıtı dışında hiçbir şey yazma.
     `;
 
     const prompt = `
+STRATEJİK VERİLER:
 Web Sitesi: ${url}
 Sektör/Odak: ${sectorKeywords}
 İş Modeli: ${businessModel}
 E-ticaret: ${isEcommerce ? 'Evet' : 'Hayır'}
-Reklam Kanalları: ${JSON.stringify(adInputs)}
-Altyapı: ${JSON.stringify(trackingInputs)}
+Reklam Kanalları Girdisi: ${JSON.stringify(adInputs)}
+Teknik Takip Altyapısı: ${JSON.stringify(trackingInputs)}
 
 Aşağıdaki JSON formatında teşhis koy:
 {
@@ -90,12 +98,18 @@ Aşağıdaki JSON formatında teşhis koy:
         });
 
         if (!response.text) {
-            throw new Error("Modelden yanıt alınamadı.");
+            throw new Error("Modelden geçerli bir yanıt alınamadı.");
         }
 
         return JSON.parse(response.text);
     } catch (error: any) {
         console.error("Diagnosis Engine Error:", error);
-        throw new Error("Analiz motoru şu an meşgul veya geçersiz bir yanıt döndü. Lütfen tekrar deneyin.");
+        
+        // SDK'nın tarayıcı hatasını daha okunabilir hale getirelim
+        if (error.message?.includes("API Key") || error.message?.includes("browser")) {
+            throw new Error("Sistem yapılandırma hatası: API anahtarı sisteme enjekte edilemedi.");
+        }
+
+        throw new Error(error.message || "Analiz motoru şu an yanıt veremiyor.");
     }
 };

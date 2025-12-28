@@ -75,8 +75,7 @@ const App: React.FC = () => {
       localStorage.setItem('diagnosis_usage', JSON.stringify({ count: newCount, date: new Date().toDateString() }));
       
     } catch (e: any) {
-      const msg = e.message || 'Beklenmedik bir hata oluştu.';
-      setError(msg);
+      setError(e.message || 'Analiz sırasında teknik bir sorun oluştu.');
     } finally {
       setIsLoading(false);
     }
@@ -84,17 +83,16 @@ const App: React.FC = () => {
 
   return (
     <div className="bg-slate-900 min-h-screen text-slate-200 font-sans pb-20">
-      <header className="py-8 border-b border-slate-800 bg-slate-950/50 sticky top-0 z-50 backdrop-blur-md">
+      <header className="py-6 border-b border-slate-800 bg-slate-950/50 sticky top-0 z-50 backdrop-blur-md">
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-center md:text-left">
-            <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">
+            <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400 uppercase tracking-tighter">
               DİJİTAL TEŞHİS MOTORU
             </h1>
-            <p className="text-slate-500 text-[10px] uppercase tracking-[0.3em] font-mono">Stratejik büyüme protokolü</p>
           </div>
           <div className="flex items-center gap-3">
-             <div className="px-3 py-1 bg-slate-800 rounded-full border border-slate-700 text-[10px] font-bold text-slate-400">
-                GÜNLÜK HAK: {DAILY_LIMIT - usageCount} / {DAILY_LIMIT}
+             <div className="px-3 py-1 bg-slate-800/50 rounded-full border border-slate-700 text-[10px] font-bold text-slate-400">
+                GÜNLÜK KALAN HAK: {DAILY_LIMIT - usageCount}
              </div>
           </div>
         </div>
@@ -104,14 +102,14 @@ const App: React.FC = () => {
         <div className="max-w-4xl mx-auto space-y-12">
           
           <div className="text-center space-y-4 mb-12">
-            <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter">
+            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase leading-none">
               SİTENİZ NEDEN <span className="text-sky-500">PARA KAZANDIRMIYOR?</span>
             </h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-              SEO, Meta/Google reklamları ve dönüşüm tıkanıklıklarını saniyeler içinde tespit eden yapay zeka tabanlı "Sert Gerçeklik" motoru.
+            <p className="text-slate-400 text-lg max-w-2xl mx-auto font-medium">
+              SEO, reklam ve dönüşüm tıkanıklıklarını saniyeler içinde tespit eden otomatik teşhis motoru.
             </p>
           </div>
-          
+
           <AnalysisInput
             url={url} setUrl={setUrl}
             sectorKeywords={sectorKeywords} setSectorKeywords={setSectorKeywords}
@@ -125,10 +123,10 @@ const App: React.FC = () => {
           />
 
           {error && (
-            <div className="bg-red-900/20 border-2 border-red-900/50 p-6 rounded-2xl text-red-400 text-sm font-bold flex flex-col items-center gap-4 animate-shake">
+            <div className="bg-red-950/30 border-2 border-red-500/20 p-6 rounded-3xl text-red-400 text-sm font-bold flex flex-col items-center gap-4 animate-shake shadow-2xl">
               <div className="flex items-center gap-4">
-                <span className="text-2xl">⚠️</span>
-                <span>{error}</span>
+                <span className="text-2xl">🚨</span>
+                <span className="leading-relaxed">{error}</span>
               </div>
             </div>
           )}
