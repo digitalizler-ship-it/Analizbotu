@@ -12,86 +12,80 @@ export const generateProposal = async (
   businessModel: BusinessModel
 ): Promise<AnalysisResult> => {
     
-    // Uygulama Vercel üzerinde process.env.API_KEY üzerinden anahtarı otomatik alır.
-    const apiKey = process.env.API_KEY;
-    
-    if (!apiKey) {
-        throw new Error("Sistem şu an bakımda. Lütfen daha sonra tekrar deneyin.");
-    }
-
-    const ai = new GoogleGenAI({ apiKey });
+    // API anahtarı sistem tarafından (Vercel vb.) otomatik olarak enjekte edilir.
+    // Herhangi bir manuel girdi veya .env dosyası gerektirmez.
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const systemInstruction = `
 Sen "Ertunç Koruç" kimliğinde, "Dijital İzler" ajansının kurucusu ve senior bir büyüme danışmanısın.
-Dönüşüm (CRO), SEO ve Ücretli Reklam (Ads) konularında en sert ve en dürüst teşhisleri koyarsın.
+Pazarlama stratejileri konusunda dürüst ve doğrudan analizler yaparsın.
 
 DİL: Türkçe.
-TON: Sert, doğrudan, ticari odaklı, 'gerçekleri yüzüne çarpan' bir tarz.
+TON: Profesyonel, sert, çözüm odaklı.
 
 GÖREV:
-1. Verilen URL'i ve rakipleri Google Search kullanarak analiz et.
-2. Sitenin SEO görünürlüğünü, Meta (FB/IG) ve Google reklam stratejilerini (aktif reklam çıkıp çıkmadığını, mesaj kalitesini) değerlendir.
-3. Teknik hatalardan ziyade, bu hataların iş sahibine mal olduğu "para kaybını" vurgula.
-4. Yanıtını MUTLAK SURETLE sadece JSON formatında ver.
+1. Verilen URL'i Google Search kullanarak analiz et.
+2. SEO, Reklam (Meta, Google) ve UX durumunu değerlendir.
+3. Çıktıyı MUTLAK SURETLE JSON formatında ver.
     `;
 
     const prompt = `
-ANALİZ PARAMETRELERİ:
-Web Sitesi: ${url}
-Sektör/Odak: ${sectorKeywords}
+STRATEJİK VERİLER:
+Site: ${url}
+Sektör: ${sectorKeywords}
 İş Modeli: ${businessModel}
 E-ticaret: ${isEcommerce ? 'Evet' : 'Hayır'}
 Rakipler: ${competitorUrls.filter(u => u).join(', ')}
-Manuel Reklam Bilgisi: ${JSON.stringify(adInputs)}
-Teknik Takip: ${JSON.stringify(trackingInputs)}
+Reklam Durumu: ${JSON.stringify(adInputs)}
+Takip Altyapısı: ${JSON.stringify(trackingInputs)}
 
 Aşağıdaki JSON formatında teşhis koy:
 {
-  "executiveRealitySummary": "Sitenin şu anki durumunu özetleyen sert bir cümle.",
+  "executiveRealitySummary": "...",
   "scoreMeaning": {
     "overallScore": 0,
     "detailedScores": {"seo": 0, "ads": 0, "ux": 0, "brand": 0, "growth": 0},
     "classification": "0–40",
-    "consequences": "Böyle devam edilirse ne olur?",
-    "notPossible": "Bu yapıyla neyi başaramazlar?",
-    "commonError": "Sektördeki en büyük yanılgıları."
+    "consequences": "...",
+    "notPossible": "...",
+    "commonError": "..."
   },
-  "technicallyRightCommerciallyWrong": ["Teknik olarak yapılmış ama para kazandırmayan 3 madde"],
+  "technicallyRightCommerciallyWrong": ["..."],
   "seoReality": {
-    "trafficPotential": "Trafik durumu",
-    "salesPotential": "Satışa dönüşme potansiyeli",
-    "competitorGap": "Rakiplerle arasındaki uçurum",
-    "marketReality": "Pazarın gerçeği",
-    "quickWins": ["Hızlıca düzeltilmesi gerekenler"]
+    "trafficPotential": "...",
+    "salesPotential": "...",
+    "competitorGap": "...",
+    "marketReality": "...",
+    "quickWins": ["..."]
   },
   "adsReality": {
-    "targetingVsPersuasion": "Hedefleme mi sorunlu yoksa ikna mı?",
+    "targetingVsPersuasion": "...",
     "messagingScore": 0,
-    "valuePriceBalance": "Fiyat/Değer algısı",
-    "clickReason": "Müşteri neden tıklasın?"
+    "valuePriceBalance": "...",
+    "clickReason": "..."
   },
   "uxFriction": {
-    "hesitationPoint": "Kullanıcı nerede duraksıyor?",
-    "trustLossPoint": "Güven nerede kırılıyor?",
-    "exitPoint": "Nereden kaçıyorlar?",
-    "expertVerdict": "UX hakkında son karar"
+    "hesitationPoint": "...",
+    "trustLossPoint": "...",
+    "exitPoint": "...",
+    "expertVerdict": "..."
   },
-  "coreProblem": {"type": "Trafik", "reason": "Asıl tıkanıklık noktası"},
-  "failureRisk": {"wastedInvestment": "Boşa giden bütçe tahmini", "burningChannel": "En verimsiz kanal"},
+  "coreProblem": {"type": "Trafik", "reason": "..."},
+  "failureRisk": {"wastedInvestment": "...", "burningChannel": "..."},
   "actionFramework": {
-    "day0_30": [{"task": "Görev", "impact": "Etki"}],
-    "day30_60": [{"task": "Görev", "impact": "Etki"}],
-    "day60_90": [{"task": "Görev", "impact": "Etki"}]
+    "day0_30": [{"task": "...", "impact": "..."}],
+    "day30_60": [{"task": "...", "impact": "..."}],
+    "day60_90": [{"task": "...", "impact": "..."}]
   },
-  "expertJudgment": "Danışmanın nihai acımasız yorumu.",
-  "nextStep": "Hemen atılması gereken adım.",
-  "emailDraft": "İş sahibine gönderilecek profesyonel ama sert uyarı maili."
+  "expertJudgment": "...",
+  "nextStep": "...",
+  "emailDraft": "..."
 }
     `;
 
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-3-pro-preview",
+            model: "gemini-3-flash-preview",
             contents: prompt,
             config: {
                 systemInstruction: systemInstruction,
@@ -100,12 +94,13 @@ Aşağıdaki JSON formatında teşhis koy:
             },
         });
 
-        const text = response.text;
-        if (!text) throw new Error("Analiz motoru boş yanıt döndü.");
-        
-        return JSON.parse(text);
+        if (!response.text) {
+            throw new Error("Boş yanıt.");
+        }
+
+        return JSON.parse(response.text);
     } catch (error: any) {
-        console.error("Gemini Service Error:", error);
-        throw new Error("Analiz motoru şu an çok yoğun. Lütfen 30 saniye sonra tekrar deneyin.");
+        console.error("Diagnosis Engine Error:", error);
+        throw new Error("Analiz motoru şu an çok yoğun. Lütfen birkaç saniye sonra tekrar deneyin.");
     }
 };
